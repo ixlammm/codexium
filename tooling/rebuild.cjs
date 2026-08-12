@@ -145,8 +145,12 @@ function verify() {
 
 function packageApp() {
   console.log("[package] running electron-packager");
+  // After swap() in rebuild mode the work copy has been renamed to FORGE;
+  // without swap (package-only mode) the work copy is still at WORK. Pick
+  // whichever path currently exists so electron-packager finds package.json.
+  const appDir = fs.existsSync(WORK) ? WORK : FORGE;
   runNode(path.join(TOOLING, "run-packager.cjs"), {
-    FORGE_ROOT: WORK,
+    FORGE_ROOT: appDir,
     NATIVE_RESOURCES: NATIVE_RES,
     OUT_DIR,
     FORGE_DIR: FORGE,
