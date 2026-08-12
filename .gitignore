@@ -1,0 +1,31 @@
+# ===== heavy / derived / regenerable =====
+node_modules/
+forge-project/out/
+forge-project/node_modules/
+forge-project/.vite/
+forge-project/native-menu-locales/
+forge-project/webview/
+forge-project/*.asar
+forge-project/*.asar.bak
+forge-project/*.log
+forge-project/package-lock.json
+app/
+asar-check3/
+extra-resources/
+native-rebuild/
+src-readable/
+_asarcheck/
+_work/
+
+# keep only the build config that belongs to the repo
+!forge-project/
+!forge-project/forge.config.cjs
+!forge-project/package.json
+
+# ===== tooling: only the build scripts are tracked =====
+tooling/*
+!tooling/patch-*.cjs
+!tooling/run-packager.cjs
+!tooling/rebuild.cjs
+!tooling/package.json
+!tooling/package-lock.json

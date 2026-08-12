@@ -1,0 +1,64 @@
+# Codex rebuild kit
+
+Reproduces the patched Codex desktop app (model-grouping in the composer
+picker, custom-model selection fix, patch backups cleaned) from a pristine
+Codex install.
+
+## Layout
+
+- `tooling/rebuild.cjs` — orchestrator (copy base → apply patches → verify →
+  package → swap → unpacked dev dir)
+- `tooling/run-packager.cjs` — electron-packager step (uses `@electron/packager`)
+- `tooling/patch-*.cjs` — the actual delta recipes as byte-anchored rewrites;
+  each targets `$FORGE_ROOT` (defaults to `../forge-project`)
+- `forge-project/forge.config.cjs`, `forge-project/package.json` — build metadata
+  (tracked; everything else under `forge-project/` is generated)
+- `forge-project/` (untracked) — the working copy: pristine base + patches;
+  its `webview/index.html`, `app-initial-CUcIZsiK.js`, `.vite/build/src-Cz_uUmVl.js`
+  and the worklouder bundle are the "golden" that a verified build must match
+- `app/` (untracked) — pristine base app source (matching `resources/app.asar`)
+- `forge-project/out/` (untracked) — packaged output: `out/Codex-win32-x64/`
+  `resources/app` is the unpacked app you edit + relaunch for fast iteration
+
+## Prerequisites
+
+- Node.js (>= 18) and `tooling/node_modules` installed:
+  `cd tooling && npm ci` (deps: `@electron/packager`, `@electron/asar`)
+- A pristine base. Either:
+  - `app/` prepared (an extracted `resources/app.asar`), or
+  - the original `resources/app.asar` at `ASAR_SRC`
+    (default `C:/Users/Islam/Documents/projects/codex/resources/app.asar`)
+- Native resources (codex.exe, rg, native/, plugins/, skills/, cua_node/)
+  at `NATIVE_RESOURCES`
+  (default `C:/Users/Islam/Documents/projects/codex/resources`)
+- Electron 42.3.0 zip (auto-downloaded by electron-packager if not cached)
+
+## Usage
+
+From `tooling/`:
+
+```
+node rebuild.cjs            # check: fresh copy of base + all patches, verified
+                            #   byte-identical to the shipped golden files
+node rebuild.cjs --package  # check + run electron-packager into forge-project/out
+node rebuild.cjs --rebuild  # full cycle: swap golden, package, extract unpacked
+                            #   resources/app, rename app.asar -> app.asar.bak
+```
+
+Env overrides: `BASE_DIR`, `ASAR_SRC`, `NATIVE_RESOURCES`, `OUT_DIR`,
+`FORGE_DIR`, `WORK_DIR`.
+
+## Fast iteration loop (after a build)
+
+1. Edit `forge-project/out/Codex-win32-x64/resources/app/webview/index.html`
+   (styles) or the bundle under `resources/app/webview/assets/`
+2. Close `Codex.exe`, relaunch from
+   `forge-project/out/Codex-win32-x64/Codex.exe`
+3. When finished, run `node rebuild.cjs --rebuild` to lock the final state and
+   regenerate a clean distribution
+
+## Verification
+
+A `--rebuild`/`--check` run asserts the patched files are byte-identical to the
+current golden (the last shipped state). Any drift in the base bundle, patch
+anchors, or hand edits fails loudly instead of silently shipping something new.
