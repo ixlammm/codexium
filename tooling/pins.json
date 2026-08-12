@@ -1,0 +1,65 @@
+{
+  "codexRelease": {
+    "tag": "rust-v0.147.0-alpha.6.5",
+    "baseUrl": "https://github.com/openai/codex/releases/download/rust-v0.147.0-alpha.6.5",
+    "copyAssets": [
+      {
+        "name": "codex-x86_64-pc-windows-msvc.exe",
+        "to": "codex.exe",
+        "size": 293478192,
+        "sha256": "115518500b45188e410a15d3224c2bbc87df6f2209729bf327aaf7808ca9d5a6"
+      },
+      {
+        "name": "codex-code-mode-host-x86_64-pc-windows-msvc.exe",
+        "to": "codex-code-mode-host.exe",
+        "size": 57427760,
+        "sha256": "a159c3b1ee528336cc123b500e3b2d306e472103bf8f90b28eda81e5e303739f"
+      },
+      {
+        "name": "codex-command-runner-x86_64-pc-windows-msvc.exe",
+        "to": "codex-command-runner.exe",
+        "size": 1301296,
+        "sha256": "a79baa2526a4deb037743d63bf5b9bc2bdbb936e08dc7ff1c4014fa522f5c9d2"
+      },
+      {
+        "name": "codex-windows-sandbox-setup-x86_64-pc-windows-msvc.exe",
+        "to": "codex-windows-sandbox-setup.exe",
+        "size": 8801072,
+        "sha256": "74e8ed78b6427328a63a00a40dcffc6647ee4bdb3ddccb0079a2471a2ef09cb7"
+      }
+    ],
+    "extractAssets": [
+      {
+        "name": "codex-x86_64-unknown-linux-musl.tar.gz",
+        "to": "codex",
+        "sha256": "e76ce99cfa8474611730ebb19fdb01c410048bf14cda6614e83c7f312414226f"
+      },
+      {
+        "name": "codex-code-mode-host-x86_64-unknown-linux-musl.tar.gz",
+        "to": "codex-code-mode-host",
+        "sha256": "e2b152e643a3e7b6c26a9b865cbb97a43fa172d6484b1ee09198c32cf3292092"
+      }
+    ]
+  },
+  "nodeRuntime": {
+    "version": "24.14.0",
+    "file": "node-v24.14.0-win-x64.zip",
+    "url": "https://nodejs.org/dist/v24.14.0/node-v24.14.0-win-x64.zip",
+    "sha256": "313fa40c0d7b18575821de8cb17483031fe07d95de5994f6f435f3b345f85c66"
+  },
+  "ripgrep": {
+    "version": "15.2.0",
+    "windowsZip": {
+      "name": "ripgrep-15.2.0-x86_64-pc-windows-msvc.zip",
+      "url": "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-pc-windows-msvc.zip",
+      "to": "rg.exe",
+      "sha256": "71b2fef860abe467217a538ff31de02f5258807c0129f771846f87bd029aafc5"
+    },
+    "linuxTarGz": {
+      "name": "ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz",
+      "url": "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz",
+      "to": "rg",
+      "sha256": "33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c"
+    }
+  }
+}

@@ -1,5 +1,20 @@
 # ===== heavy / derived / regenerable =====
-node_modules/
+#
+# Top-level node_modules only. Vendored node trees (e.g. under vendor/) are
+# not caught here because the pattern is anchored to the repo root.
+/node_modules/
+
+# Tooling deps live in tooling/node_modules and are reinstalled via
+# tooling/package-lock.json.
+tooling/node_modules/
+
+# Generated/regenerable build output (assembled NATIVE_RESOURCES stage + the
+# downloaded artifact cache).
+build/
+
+# Original codex install artifacts extracted for the base app.
+app/
+
 forge-project/out/
 forge-project/node_modules/
 forge-project/.vite/
@@ -9,7 +24,8 @@ forge-project/*.asar
 forge-project/*.asar.bak
 forge-project/*.log
 forge-project/package-lock.json
-app/
+
+# Leftover exploratory working directories.
 asar-check3/
 extra-resources/
 native-rebuild/
@@ -17,15 +33,23 @@ src-readable/
 _asarcheck/
 _work/
 
+# ===== tracked allowlist =====
+#
 # keep only the build config that belongs to the repo
 !forge-project/
 !forge-project/forge.config.cjs
 !forge-project/package.json
+
+# commit the proprietary payload (cua node_modules, native addons, plugins,
+# skills, icons, config, notices) that has no public source
+!vendor/
 
 # ===== tooling: only the build scripts are tracked =====
 tooling/*
 !tooling/patch-*.cjs
 !tooling/run-packager.cjs
 !tooling/rebuild.cjs
+!tooling/prepare-resources.cjs
+!tooling/pins.json
 !tooling/package.json
 !tooling/package-lock.json

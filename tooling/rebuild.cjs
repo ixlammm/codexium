@@ -8,8 +8,9 @@ const TOOLING = __dirname;
 const REPO = path.join(__dirname, "..");
 const FORGE = process.env.FORGE_DIR || path.join(REPO, "forge-project");
 const BASE_DIR = process.env.BASE_DIR || path.join(REPO, "app");
+const NATIVE_RES_STAGED = path.join(REPO, "build", "resources");
 const ASAR_SRC = process.env.ASAR_SRC || "C:/Users/Islam/Documents/projects/codex/resources/app.asar";
-const NATIVE_RES = process.env.NATIVE_RESOURCES || "C:/Users/Islam/Documents/projects/codex/resources";
+const NATIVE_RES = process.env.NATIVE_RESOURCES || NATIVE_RES_STAGED;
 const OUT_DIR = process.env.OUT_DIR || path.join(FORGE, "out");
 const WORK = process.env.WORK_DIR || path.join(os.tmpdir(), "codex-rebuild-work");
 
@@ -44,6 +45,18 @@ const VERIFY_FILES = [
 function rm(p) {
   fs.rmSync(p, { recursive: true, force: true });
 }
+
+function ensureStagedResources() {
+  if (process.env.NATIVE_RESOURCES) return;
+  if (fs.existsSync(NATIVE_RES_STAGED)) return;
+  console.log("[resources] build/resources missing -> running prepare-resources.cjs");
+  execFileSync(
+    process.execPath,
+    [path.join(TOOLING, "prepare-resources.cjs")],
+    { cwd: TOOLING, stdio: "inherit" }
+  );
+}
+ensureStagedResources();
 
 function acquireBase() {
   const indexPath = path.join(BASE_DIR, "webview", "index.html");

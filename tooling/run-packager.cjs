@@ -9,10 +9,12 @@ process.on('unhandledRejection', (r) => {
   process.exit(1);
 });
 
-const ROOT = 'C:/Users/Islam/Documents/projects/codex/resources';
-const APP_DIR = process.env.FORGE_ROOT || 'C:/Users/Islam/AppData/Local/Temp/opencode/codex-rebuild/forge-project';
+const REPO = path.join(__dirname, '..');
+const STAGED_RES = path.join(REPO, 'build', 'resources');
+const ROOT = STAGED_RES;
+const APP_DIR = process.env.FORGE_ROOT || path.join(REPO, 'forge-project');
 const NATIVE_RES = process.env.NATIVE_RESOURCES || ROOT;
-const OUT_DIR = process.env.OUT_ROOT || 'C:/Users/Islam/AppData/Local/Temp/opencode/codex-rebuild/forge-project/out';
+const OUT_DIR = process.env.OUT_DIR || path.join(REPO, 'forge-project', 'out');
 const extraResource = [
   'codex',
   'codex.exe',

@@ -1,0 +1,12 @@
+{
+  "platform": "windows",
+  "arch": "x64",
+  "target": "windows-x64",
+  "node_version": "24.14.0",
+  "node_archive_path": "v24.14.0/node-v24.14.0-win-x64.zip",
+  "runtime_archive_name": "cua-node-0.0.6-20260723162306-088049353ddc-windows-x64.zip",
+  "runtime_archive_version": "0.0.6/20260723162306-088049353ddc",
+  "node_path": "bin/node.exe",
+  "node_modules": "bin/node_modules",
+  "node_repl_path": "bin/node_repl.exe"
+}
