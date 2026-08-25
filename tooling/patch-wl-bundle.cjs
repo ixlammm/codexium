@@ -53,3 +53,21 @@ module.exports.default = SerialPort;
 `;
 fs.writeFileSync(stubPath + '.serialport', spStub);
 console.log('wrote serialport stub');
+
+// write a node-hid stub that re-exports the serialport stub, so the wl-device-kit
+// require("node-hid") resolves without a native ABI match.
+const hidStub = `
+'use strict';
+const SerialPort = require('./stub-index.js.serialport');
+class HID {
+  constructor() { throw new Error('node-hid is unavailable in this build (native ABI mismatch). Hardware HID support is disabled.'); }
+  static devices() { return Promise.resolve([]); }
+  static async() { return Promise.resolve([]); }
+}
+module.exports = HID;
+module.exports.HID = HID;
+module.exports.SerialPort = SerialPort;
+module.exports.default = HID;
+`;
+fs.writeFileSync(stubPath, hidStub);
+console.log('wrote node-hid stub');

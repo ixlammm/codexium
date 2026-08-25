@@ -61,5 +61,12 @@
       "to": "rg",
       "sha256": "33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c"
     }
+  },
+  "natives": {
+    "better-sqlite3": {
+      "version": "13.0.3",
+      "tgzSha256": "77e0513dc1a469fb3bceec4c7fb5ad3f403109787eda05be047ec17fd56868cb",
+      "sha256": "e21e5efd71fba66578e95b62554d9028064a80dafd7221bf8a8ef155de8d240a"
+    }
   }
 }

@@ -10,11 +10,11 @@ const c = fs.readFileSync(js, "utf8");
 const repl = [
   [
     'className:"px-3 pb-0.5 pt-2 text-[11px] font-semibold uppercase tracking-wide text-token-text-secondary",children:k1})',
-    '"data-model-group-header":"",className:"pb-0 pt-0.5 text-[9px] font-semibold uppercase tracking-wide text-token-text-secondary",children:k1})',
+    '"data-model-group-header":"",className:"text-token-description-foreground flex min-h-6 items-center truncate px-[var(--padding-row-x)] py-[var(--padding-row-y)] text-sm leading-4",children:k1})',
   ],
   [
     'className:"px-3 pb-0.5 pt-2 text-[11px] font-semibold uppercase tracking-wide text-token-text-secondary",children:k1},k1)',
-    '"data-model-group-header":"",className:"pb-0 pt-0.5 text-[9px] font-semibold uppercase tracking-wide text-token-text-secondary",children:k1},k1)',
+    '"data-model-group-header":"",className:"text-token-description-foreground flex min-h-6 items-center truncate px-[var(--padding-row-x)] py-[var(--padding-row-y)] text-sm leading-4",children:k1},k1)',
   ],
   [
     "label:(0,V2.jsx)(u0,{model:e.model,displayName:e.displayName,stripGptPrefix:!0})",
@@ -39,8 +39,8 @@ console.log("renderer group styling marks: OK");
 
 const h = fs.readFileSync(html, "utf8");
 const css = [
-  "[data-model-group-header]{font-size:9px!important}",
-  "[role=menuitem]:has([data-model-group-header]){padding:2px 5px 4px 8px !important;cursor:default!important}",
+  "[data-model-group-header]{font-size:10px!important;line-height:1.4!important}",
+  "[role=menuitem]:has([data-model-group-header]){padding:3px 8px 4px 16px !important;cursor:default!important}",
   "[role=menuitem]:has([data-model-group-header]):hover,[role=menuitem]:has([data-model-group-header]):focus,[role=menuitem]:has([data-model-group-header])[data-highlighted]{background-color:transparent!important}",
 ].join("\r\n      ");
 const style =

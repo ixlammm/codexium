@@ -35,6 +35,7 @@ const extraResource = [
   'THIRD_PARTY_NOTICES.txt',
   'owl-app.ini',
   'owl-electron-app.json',
+  'providers-registry.json',
 ].map((f) => path.join(NATIVE_RES, f).replace(/\\/g, '/'));
 
 packager({
@@ -49,6 +50,9 @@ packager({
   rebuild: false,
   out: OUT_DIR,
   electronVersion: '42.3.0',
+  // Use a locally cached Electron zip so the packager never hits the network.
+  // Set ELECTRON_ZIP_DIR to the dir holding `electron-v42.3.0-win32-x64.zip`.
+  electronZipDir: process.env.ELECTRON_ZIP_DIR || undefined,
   icon: path.join(NATIVE_RES, 'icon-chatgpt.ico').replace(/\\/g, '/'),
   win32metadata: {
     CompanyName: 'OpenAI',
@@ -66,4 +70,5 @@ packager({
   .catch((err) => {
     fs.writeFileSync(path.join(os.tmpdir(), 'pkg-err.txt'), (err && err.stack) || String(err));
     console.error('ERR');
+    process.exitCode = 1;
   });

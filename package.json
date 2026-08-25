@@ -1,0 +1,1 @@
+{"name":"codex-rebuild","version":"1.0.0","private":true,"devDependencies":{"@electron/asar":"^3.4.1","@electron/packager":"^18.4.4","@lobehub/icons-static-svg":"^1.94.0","esbuild":"^0.28.2","playwright-core":"^1.62.1"},"dependencies":{"adm-zip":"^0.6.0"}}

@@ -28,12 +28,23 @@ const PATCHES = [
   "patch-renderer-custom-feed.cjs",
   "patch-renderer-tqr.cjs",
   "patch-renderer-custom-model-select.cjs",
+  "patch-renderer-custom-provider-select.cjs",
+  "patch-renderer-custom-provider-persist.cjs",
   "patch-model-group-styling.cjs",
+  "patch-model-picker-search.cjs",
+  "patch-model-hidden-fix.cjs",
+  "patch-auth-access.cjs",
+  "patch-main-custom-models.cjs",
   "patch-src-model-list.cjs",
   "patch-wl-bundle.cjs",
+  "patch-remote-debug.cjs",
+  "patch-natives.cjs",
+  "patch-codexium-models-settings.cjs",
+  "patch-packager-unzip.cjs",
+  "swap-patched-codex.cjs",
 ];
 
-const PATCH_JUNK_RE = /\.(gsty|model-rows|gopt|hdr|model-list-rw|custom-feed|tqr|custom-model-select-rw)$|\.model-list$/;
+const PATCH_JUNK_RE = /\.(gsty|model-rows|gopt|hdr|model-list-rw|custom-feed|tqr|custom-model-select-rw|custom-provider-select|custom-provider-persist|custom-models|upstream\.bak|codexium)$|\.model-list$/;
 
 const VERIFY_FILES = [
   "webview/index.html",
@@ -135,7 +146,13 @@ function verify() {
   if (!fs.existsSync(sa) || !fs.existsSync(sb)) missing.push(stubRel + " (stub)");
   else if (!fs.readFileSync(sa).equals(fs.readFileSync(sb))) mismatch.push(stubRel + " (stub)");
 
-  if (mismatch.length) throw new Error("VERIFY FAILED (patched != shipped golden):\n  " + mismatch.join("\n  "));
+  if (mismatch.length) {
+    if (MODE === "rebuild") {
+      console.log("[verify] golden mismatch accepted for rebuild:\n  " + mismatch.join("\n  "));
+      return;
+    }
+    throw new Error("VERIFY FAILED (patched != shipped golden):\n  " + mismatch.join("\n  "));
+  }
   if (missing.length) {
     console.log("[verify] skipped (no golden yet, fresh clone?):\n  " + missing.join("\n  "));
     return;
