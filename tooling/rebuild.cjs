@@ -31,6 +31,7 @@ const PATCHES = [
   "patch-renderer-custom-provider-select.cjs",
   "patch-renderer-custom-provider-persist.cjs",
   "patch-model-group-styling.cjs",
+  "patch-neuter-telemetry.cjs",
   "patch-model-picker-search.cjs",
   "patch-model-hidden-fix.cjs",
   "patch-auth-access.cjs",
