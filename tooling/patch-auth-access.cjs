@@ -28,6 +28,14 @@ const edits = [
     replacement: "I=g!==`chatgpt`&&g!==`copilot`",
     label: "profile menu: show Sign in whenever not in a ChatGPT/Copilot account",
   },
+  {
+    // 3) Make "Sign in with ChatGPT" (kept in `He`) the FIRST entry of the
+    //    rich API-key menu by reordering its `additionalItems` from
+    //    `[We, He, Ge]` to `[He, We, Ge]` (We = Show pet, Ge = Settings).
+    anchor: "additionalItems:(0,e7.jsxs)(e7.Fragment,{children:[We,He,(0,e7.jsx)(e7.Fragment,{children:Ge})]})",
+    replacement: "additionalItems:(0,e7.jsxs)(e7.Fragment,{children:[He,We,(0,e7.jsx)(e7.Fragment,{children:Ge})]})",
+    label: "profile menu: move Sign in (He) to the front",
+  },
 ];
 
 let patched = c;
