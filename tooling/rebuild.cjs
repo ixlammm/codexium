@@ -34,6 +34,7 @@ const PATCHES = [
   "patch-model-picker-search.cjs",
   "patch-model-hidden-fix.cjs",
   "patch-auth-access.cjs",
+  "patch-cx-login-route.cjs",
   "patch-main-custom-models.cjs",
   "patch-src-model-list.cjs",
   "patch-wl-bundle.cjs",
