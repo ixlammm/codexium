@@ -13,7 +13,7 @@ const BLOCKER = `/* codex: neuter telemetry */ (function () {
   "use strict";
   var RE = /wham\\/analytics-events|\\/log_event|\\/sdk_exception|sentry\\.io|ingest\\.sentry/i;
   function isTelemetry(u){ try { return RE.test(String(u)); } catch (e) { return false; } }
-  function blankResp(){ try { return new Response("", { status: 200, headers: { "Content-Type": "text/plain" } }); } catch (e) { return null; } }
+  function blankResp(){ try { return new Response("", { status: 200, headers: { "Content-Type": "text/plain", "X-Codex-Telemetry": "blocked" } }); } catch (e) { return null; } }
   var of = window.fetch;
   if (typeof of === "function") {
     window.fetch = function (input, init) {
