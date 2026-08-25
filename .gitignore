@@ -53,6 +53,7 @@ tooling/*
 !tooling/pins.json
 !tooling/package.json
 !tooling/package-lock.json
+!tooling/codexium-*.jsx
 
 # ===== misc =====
 misc
