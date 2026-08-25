@@ -57,6 +57,7 @@ tooling/*
 !tooling/providers-registry.json
 !tooling/injected-custom-models.js
 !tooling/codexium-icons.js
+!tooling/swap-patched-codex.cjs
 
 # ===== misc =====
 misc
