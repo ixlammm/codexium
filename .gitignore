@@ -54,6 +54,9 @@ tooling/*
 !tooling/package.json
 !tooling/package-lock.json
 !tooling/codexium-*.jsx
+!tooling/providers-registry.json
+!tooling/injected-custom-models.js
+!tooling/codexium-icons.js
 
 # ===== misc =====
 misc
