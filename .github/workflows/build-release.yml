@@ -15,10 +15,6 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
-    env:
-      # The base app payload is fetched at build time (local `app/` if present,
-      # otherwise downloaded from the codex-app-payload GitHub release) by
-      # tooling/fetch-payload.cjs, which fails loudly if it can't be found.
     steps:
       - uses: actions/checkout@v4
         with:
