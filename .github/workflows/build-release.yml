@@ -31,11 +31,12 @@ jobs:
         run: |
           npm ci --ignore-scripts
 
-      - name: Install forge-project deps
+      - name: Install forge-project deps (best-effort)
+        shell: pwsh
         run: |
           cd forge-project
-          npm ci --ignore-scripts 2>$null || pnpm install --frozen-lockfile || npm install
-        shell: pwsh
+          npm install --ignore-scripts
+        continue-on-error: true
 
       - name: Ensure base app payload (local or download from release)
         run: |
