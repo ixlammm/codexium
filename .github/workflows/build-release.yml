@@ -30,9 +30,7 @@ jobs:
         with:
           node-version: 20
 
-      - uses: actions/setup-rust@v1
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Install build deps (root)
         run: |
@@ -52,7 +50,7 @@ jobs:
       # Download the latest codexium-cli release so we use the published binary
       # (instead of building it in CI).
       - name: Download latest codexium-cli release
-        uses: robinraju/release-downloader@v1.1
+        uses: robinraju/release-downloader@v1
         with:
           repository: ixlammm/codexium-cli
           latest: true
