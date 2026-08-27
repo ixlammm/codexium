@@ -1,0 +1,102 @@
+name: build-app-release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [full-build]
+    tags: ["v*"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      # Where to find the base Codex app payload + vendor (committed on the
+      # full-build branch). If your repo does not contain them, set this to a
+      # download URL for a base-payload artifact instead and uncomment the
+      # download step below.
+      BASE_APP_URL: ${{ vars.BASE_APP_URL || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-rust@v1
+        with:
+          toolchain: stable
+
+      - name: Install build deps (root)
+        run: |
+          npm ci --ignore-scripts
+
+      - name: Install forge-project deps
+        run: |
+          cd forge-project
+          npm ci --ignore-scripts 2>$null || pnpm install --frozen-lockfile || npm install
+        shell: pwsh
+
+      - if: env.BASE_APP_URL != ''
+        name: Download base app payload
+        uses: robinraju/release-downloader@v1.1
+        with:
+          repository: ${{ github.repository }}
+          tag: base-app
+          fileName: base-app-payload.zip
+          out-file-path: runtime
+      - if: env.BASE_APP_URL != ''
+        name: Unpack base app payload
+        run: |
+          Expand-Archive -Path runtime/base-app-payload.zip -DestinationPath .
+          Remove-Item runtime -Recurse -Force
+
+      # Download the latest codexium-cli release so we use the published binary
+      # (instead of building it in CI).
+      - name: Download latest codexium-cli release
+        uses: robinraju/release-downloader@v1.1
+        with:
+          repository: ixlammm/codexium-cli
+          latest: true
+          fileName: codex.exe
+          out-file-path: cli
+        continue-on-error: true
+        id: cli_dl
+
+      - name: Build codexium-cli (if release download failed / no .exe)
+        if: steps.cli_dl.outcome != 'success' || !hashFiles('cli/codex.exe')
+        run: |
+          $env:LOCAL_CODEX_EXE = "${{ github.workspace }}\codexium-cli\codex-rs\target\debug\codex.exe"
+          cargo build --bin codex -p codex-cli --manifest-path codexium-cli/codex-rs/Cargo.toml
+        shell: pwsh
+
+      - name: Build patched Codex app
+        run: |
+          $cli = if (Test-Path "cli/codex.exe") { "cli/codex.exe" } else { "${{ github.workspace }}\codexium-cli\codex-rs\target\debug\codex.exe" }
+          $env:LOCAL_CODEX_EXE = Join-Path $PWD $cli
+          # Electron is resolved at runtime by the packager; ensure node avail.
+          node tooling/build.cjs --rebuild
+        shell: pwsh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Codex-win32-x64
+          path: forge-project/out/Codex-win32-x64
+
+      - name: Release on tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            forge-project/out/Codex-win32-x64/Codex.exe
+          generate_release_notes: true

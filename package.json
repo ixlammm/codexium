@@ -6,6 +6,8 @@
     "check": "node tooling/build.cjs",
     "rebuild": "node tooling/build.cjs --rebuild",
     "package": "node tooling/build.cjs --package",
+    "build:all": "node tooling/build-all.cjs --rebuild",
+    "build:cli": "cargo build --bin codex -p codex-cli --manifest-path codexium-cli/codex-rs/Cargo.toml",
     "build:codex": "cargo build --bin codex -p codex-cli --manifest-path ../codexium-cli/codex-rs/Cargo.toml",
     "prepare:resources": "node tooling/prepare-resources.cjs"
   },

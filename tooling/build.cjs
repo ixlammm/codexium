@@ -22,6 +22,7 @@ const path = require("path");
 function findCodexExe() {
   const cands = [
     process.env.LOCAL_CODEX_EXE,
+    path.join(__dirname, "codexium-cli", "codex-rs", "target", "debug", "codex.exe"),
     path.join(__dirname, "..", "..", "codexium-cli", "codex-rs", "target", "debug", "codex.exe"),
     path.join(os.homedir(), "Documents", "projects", "codexium-cli", "codex-rs", "target", "debug", "codex.exe"),
   ].filter(Boolean);

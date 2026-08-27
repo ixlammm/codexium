@@ -1,0 +1,3 @@
+[submodule "codexium-cli"]
+	path = codexium-cli
+	url = https://github.com/ixlammm/codexium-cli

@@ -54,6 +54,7 @@ tooling/*
 !tooling/package.json
 !tooling/package-lock.json
 !tooling/build.cjs
+!tooling/build-all.cjs
 !tooling/codexium-*.jsx
 !tooling/providers-registry.json
 !tooling/injected-custom-models.js
