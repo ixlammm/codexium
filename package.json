@@ -11,6 +11,8 @@
     "build:codex": "cargo build --bin codex -p codex-cli --manifest-path ../codexium-cli/codex-rs/Cargo.toml",
     "publish:payload": "node tooling/publish-payload.cjs",
     "publish:payload:upload": "node tooling/publish-payload.cjs --upload",
+    "fetch:payload": "node tooling/fetch-payload.cjs",
+    "check:payload": "node tooling/fetch-payload.cjs && node tooling/build.cjs",
     "prepare:resources": "node tooling/prepare-resources.cjs"
   },
   "devDependencies": {

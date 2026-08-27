@@ -48,13 +48,13 @@ console.log("[publish-payload] app version:", version);
 console.log("[publish-payload] wrote", path.relative(REPO, zipPath), "(" + mb.toFixed(1) + " MB)");
 
 if (process.argv.includes("--upload")) {
-  const release = process.env.RELEASE_TAG || `codex-app-${version}`;
+  const release = process.env.PAYLOAD_RELEASE || "codex-app-payload";
   console.log("[publish-payload] uploading to release", release, "...");
   try {
     execFileSync("gh", ["release", "view", release], { stdio: "ignore" });
   } catch {
     console.log("[publish-payload] creating release", release);
-    execFileSync("gh", ["release", "create", release, "--title", "Codex app payload " + version, "--notes", "Base Codex app payload for codex-rebuild"], { stdio: "inherit" });
+    execFileSync("gh", ["release", "create", release, "--title", "Codex app payloads", "--notes", "Versioned base Codex app payloads for codex-rebuild. Assets are codex-app-v<payload-version>-payload.zip"], { stdio: "inherit" });
   }
   execFileSync("gh", ["release", "upload", release, zipPath, "--clobber"], { stdio: "inherit" });
   console.log("[publish-payload] uploaded", zipName, "to release", release);

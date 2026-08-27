@@ -16,11 +16,9 @@ jobs:
     permissions:
       contents: write
     env:
-      # Where to find the base Codex app payload + vendor (committed on the
-      # full-build branch). If your repo does not contain them, set this to a
-      # download URL for a base-payload artifact instead and uncomment the
-      # download step below.
-      BASE_APP_URL: ${{ vars.BASE_APP_URL || '' }}
+      # The base app payload is fetched at build time (local `app/` if present,
+      # otherwise downloaded from the codex-app-payload GitHub release) by
+      # tooling/fetch-payload.cjs, which fails loudly if it can't be found.
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,20 +44,10 @@ jobs:
           npm ci --ignore-scripts 2>$null || pnpm install --frozen-lockfile || npm install
         shell: pwsh
 
-      - if: env.BASE_APP_URL != ''
-        name: Download base app payload
-        uses: robinraju/release-downloader@v1.1
-        with:
-          repository: ${{ github.repository }}
-          release: codex-app-payload
-          fileName: codex-app-v*.zip
-          out-file-path: runtime
-      - if: env.BASE_APP_URL != ''
-        name: Unpack base app payload into app/
+      - name: Ensure base app payload (local or download from release)
         run: |
-          $zip = Get-ChildItem runtime/codex-app-v*.zip | Select-Object -First 1
-          Expand-Archive -Path $zip.FullName -DestinationPath app -Force
-          Remove-Item runtime -Recurse -Force
+          node tooling/fetch-payload.cjs
+        shell: pwsh
 
       # Download the latest codexium-cli release so we use the published binary
       # (instead of building it in CI).
