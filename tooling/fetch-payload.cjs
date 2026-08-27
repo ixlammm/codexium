@@ -62,14 +62,16 @@ function download(url, out) {
     fail(`could not download ${ASSET} — is it uploaded to release '${RELEASE}' on ${REPO_SLUG}? run: npm run publish:payload:upload`);
   }
 
-  // 3) unpack into app/
+  // 3) unpack into the repo (creates app/ + vendor/)
   console.log("[fetch-payload] unpacking", ASSET);
   fs.rmSync(APP, { recursive: true, force: true });
+  fs.rmSync(path.join(REPO, "vendor"), { recursive: true, force: true });
   fs.mkdirSync(APP, { recursive: true });
-  execFileSync("powershell", ["-NoProfile", "-Command", `Expand-Archive -Path "${dl}" -DestinationPath "${APP}" -Force`], { stdio: "inherit" });
+  execFileSync("powershell", ["-NoProfile", "-Command", `Expand-Archive -Path "${dl}" -DestinationPath "${REPO}" -Force`], { stdio: "inherit" });
   fs.rmSync(TMP, { recursive: true, force: true });
 
   const v = require(path.join(APP, "package.json")).version;
-  console.log("[fetch-payload] app/ payload ready (v" + v + ")");
-  process.exit(v === EXPECTED ? 0 : 1);
+  const hasVendor = fs.existsSync(path.join(REPO, "vendor", "cua-node"));
+  console.log("[fetch-payload] app/ payload ready (v" + v + "), vendor present: " + hasVendor);
+  process.exit(v === EXPECTED && hasVendor ? 0 : 1);
 })();

@@ -18,6 +18,7 @@ const { execFileSync } = require("child_process");
 
 const REPO = path.join(__dirname, "..");
 const APP = path.join(REPO, "app");
+const VENDOR = path.join(REPO, "vendor");
 const OUT_DIR = path.join(REPO, "release");
 const SKIP = new Set(["node_modules", ".vite", ".git"]);
 
@@ -30,22 +31,22 @@ function walk(dir, base, zip) {
     if (SKIP.has(e.name)) continue;
     const abs = path.join(dir, e.name);
     const rel = path.join(base, e.name).split(path.sep).join("/");
-    if (e.isDirectory()) {
-      walk(abs, rel, zip);
-    } else {
-      zip.addFile(rel, fs.readFileSync(abs));
-    }
+    if (e.isDirectory()) walk(abs, rel, zip);
+    else zip.addFile(rel, fs.readFileSync(abs));
   }
 }
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const zip = new AdmZip();
-walk(APP, "", zip);
+// app/ -> zip/app/... (base webview + package.json), skip node_modules/.vite
+walk(APP, "app", zip);
+// vendor/ -> zip/vendor/... (whole proprietary payload)
+walk(VENDOR, "vendor", zip);
 zip.writeZip(zipPath);
 
 const mb = fs.statSync(zipPath).size / 1048576;
 console.log("[publish-payload] app version:", version);
-console.log("[publish-payload] wrote", path.relative(REPO, zipPath), "(" + mb.toFixed(1) + " MB)");
+console.log("[publish-payload] wrote", path.relative(REPO, zipPath), "(" + mb.toFixed(1) + " MB) [app/ + vendor/]");
 
 if (process.argv.includes("--upload")) {
   const release = process.env.PAYLOAD_RELEASE || "codex-app-payload";
