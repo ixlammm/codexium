@@ -40,6 +40,8 @@ jobs:
         continue-on-error: true
 
       - name: Ensure base app payload (local or download from release)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           node tooling/fetch-payload.cjs
         shell: pwsh
@@ -48,10 +50,12 @@ jobs:
       # (instead of building it in CI). Falls back to building from the submodule.
       - name: Download latest codexium-cli release
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force -Path cli | Out-Null
           $url = "https://github.com/ixlammm/codexium-cli/releases/latest/download/codex.exe"
-          try { Invoke-WebRequest -Uri $url -OutFile cli/codex.exe -UseBasicParsing; Write-Host "downloaded cli/codex.exe" }
+          try { Invoke-WebRequest -Uri $url -Headers @{ Authorization = "token $env:GH_TOKEN" } -OutFile cli/codex.exe -UseBasicParsing; Write-Host "downloaded cli/codex.exe" }
           catch { Write-Host "codexium-cli has no codex.exe release asset — will build from submodule" }
         continue-on-error: true
         id: cli_dl
