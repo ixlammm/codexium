@@ -48,14 +48,14 @@ jobs:
         shell: pwsh
 
       # Download the latest codexium-cli release so we use the published binary
-      # (instead of building it in CI).
+      # (instead of building it in CI). Falls back to building from the submodule.
       - name: Download latest codexium-cli release
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: ixlammm/codexium-cli
-          latest: true
-          fileName: codex.exe
-          out-file-path: cli
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path cli | Out-Null
+          $url = "https://github.com/ixlammm/codexium-cli/releases/latest/download/codex.exe"
+          try { Invoke-WebRequest -Uri $url -OutFile cli/codex.exe -UseBasicParsing; Write-Host "downloaded cli/codex.exe" }
+          catch { Write-Host "codexium-cli has no codex.exe release asset — will build from submodule" }
         continue-on-error: true
         id: cli_dl
 
