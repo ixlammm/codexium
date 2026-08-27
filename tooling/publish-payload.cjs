@@ -26,22 +26,24 @@ const version = require(path.join(APP, "package.json")).version;
 const zipName = `codex-app-v${version}-payload.zip`;
 const zipPath = path.join(OUT_DIR, zipName);
 
-function walk(dir, base, zip) {
+function walk(dir, base, zip, skip) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (SKIP.has(e.name)) continue;
+    if (skip.has(e.name)) continue;
     const abs = path.join(dir, e.name);
     const rel = path.join(base, e.name).split(path.sep).join("/");
-    if (e.isDirectory()) walk(abs, rel, zip);
+    if (e.isDirectory()) walk(abs, rel, zip, skip);
     else zip.addFile(rel, fs.readFileSync(abs));
   }
 }
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const zip = new AdmZip();
-// app/ -> zip/app/... (base webview + package.json), skip node_modules/.vite
-walk(APP, "app", zip);
-// vendor/ -> zip/vendor/... (whole proprietary payload)
-walk(VENDOR, "vendor", zip);
+// app/ -> zip/app/... (base webview + package.json); skip reinstallable deps +
+// regenerable build output. NOTE: node_modules is intentionally SKIPPED here.
+walk(APP, "app", zip, new Set(["node_modules", ".vite", ".git"]));
+// vendor/ -> zip/vendor/... keep EVERYTHING, including cua-node/bin/node_modules
+// (those are the cua runtime modules the build needs, not reinstallable).
+walk(VENDOR, "vendor", zip, new Set([".git"]));
 zip.writeZip(zipPath);
 
 const mb = fs.statSync(zipPath).size / 1048576;
