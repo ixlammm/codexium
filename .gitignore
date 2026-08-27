@@ -55,6 +55,7 @@ tooling/*
 !tooling/package-lock.json
 !tooling/build.cjs
 !tooling/build-all.cjs
+!tooling/publish-payload.cjs
 !tooling/codexium-*.jsx
 !tooling/providers-registry.json
 !tooling/injected-custom-models.js
@@ -63,3 +64,5 @@ tooling/*
 
 # ===== misc =====
 misc
+# versioned payload release output
+release/

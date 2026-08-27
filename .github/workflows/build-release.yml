@@ -51,13 +51,14 @@ jobs:
         uses: robinraju/release-downloader@v1.1
         with:
           repository: ${{ github.repository }}
-          tag: base-app
-          fileName: base-app-payload.zip
+          release: codex-app-payload
+          fileName: codex-app-v*.zip
           out-file-path: runtime
       - if: env.BASE_APP_URL != ''
-        name: Unpack base app payload
+        name: Unpack base app payload into app/
         run: |
-          Expand-Archive -Path runtime/base-app-payload.zip -DestinationPath .
+          $zip = Get-ChildItem runtime/codex-app-v*.zip | Select-Object -First 1
+          Expand-Archive -Path $zip.FullName -DestinationPath app -Force
           Remove-Item runtime -Recurse -Force
 
       # Download the latest codexium-cli release so we use the published binary
