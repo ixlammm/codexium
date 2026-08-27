@@ -51,13 +51,24 @@ function download(url, out) {
     console.log("[fetch-payload] local app/ is v" + local + " != expected v" + EXPECTED + " — will download the expected one");
   }
 
-  // 2) download from the release
+  // 2) download from the release (auth needed for private repos -> use gh first)
   fs.rmSync(APP, { recursive: true, force: true });
   fs.mkdirSync(TMP, { recursive: true });
   const dl = path.join(TMP, ASSET);
   const url = `https://github.com/${REPO_SLUG}/releases/download/${RELEASE}/${ASSET}`;
-  console.log("[fetch-payload] downloading", url);
-  const ok = await download(url, dl);
+  console.log("[fetch-payload] downloading", ASSET, "from release", RELEASE);
+  let ok = false;
+  // Try `gh release download` first: it authenticates even for private repos.
+  try {
+    execFileSync("gh", ["release", "download", RELEASE, "--repo", REPO_SLUG, "--pattern", ASSET, "--dir", TMP], { stdio: "inherit" });
+    ok = fs.existsSync(dl);
+  } catch {
+    ok = false;
+  }
+  if (!ok) {
+    console.log("[fetch-payload] gh download failed, falling back to https GET", url);
+    ok = await download(url, dl);
+  }
   if (!ok || !fs.existsSync(dl)) {
     fail(`could not download ${ASSET} — is it uploaded to release '${RELEASE}' on ${REPO_SLUG}? run: npm run publish:payload:upload`);
   }

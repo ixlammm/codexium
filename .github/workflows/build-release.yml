@@ -31,11 +31,12 @@ jobs:
         run: |
           npm ci --ignore-scripts
 
-      - name: Install forge-project deps (best-effort)
+      - name: Install forge-project deps (pnpm workspace)
         shell: pwsh
         run: |
+          corepack enable
           cd forge-project
-          npm install --ignore-scripts
+          pnpm install --ignore-scripts
         continue-on-error: true
 
       - name: Ensure base app payload (local or download from release)
