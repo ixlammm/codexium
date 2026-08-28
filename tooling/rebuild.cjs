@@ -112,7 +112,7 @@ function runNode(script, extraEnv, cwd) {
 function applyPatches() {
   for (const p of PATCHES) {
     console.log("[patch]", p);
-    runNode(path.join(TOOLING, p), { FORGE_ROOT: WORK });
+    runNode(path.join(TOOLING, p), { FORGE_ROOT: WORK, NATIVE_RESOURCES: NATIVE_RES, OUT_DIR });
   }
   const stack = [path.join(WORK, "webview", "assets"), path.join(WORK, ".vite", "build")];
   let removed = 0;
