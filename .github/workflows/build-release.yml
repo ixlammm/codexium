@@ -110,22 +110,21 @@ jobs:
           cd .artifacts
           for d in Codex-prod Codex-dev; do
             if [ -d "$d" ]; then
-              # $d/Codex-win32-x64(-dev)/Codex.exe is the app; zip the version folder
-              inner=$(find "$d" -maxdepth 1 -mindepth 1 -type d | head -1)
-              base=$(basename "$inner")
-              ( cd "$inner" && zip -qr "../../${d}-app.zip" . )
-              echo "made ${d}-app.zip from ${base}"
+              ( cd "$d" && zip -qr "../${d}-app.zip" . )
+              echo "made ${d}-app.zip ($(du -h ../${d}-app.zip | cut -f1))"
             fi
           done
-          ls -la *.zip
+          ls -la ./*.zip
 
       - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         shell: bash
         run: |
           set -e
           TAG="${GITHUB_REF##refs/tags/}"
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --generate-notes
-          gh release upload "$TAG" .artifacts/*.zip --clobber
+          REPO="$GITHUB_REPOSITORY"
+          gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1 || gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
+          gh release upload "$TAG" --repo "$REPO" .artifacts/*.zip --clobber
           echo "uploaded zips to $TAG"
