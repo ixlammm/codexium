@@ -71,6 +71,11 @@ jobs:
           cargo build --bin codex -p codex-cli --manifest-path codexium-cli/codex-rs/Cargo.toml
 
       - name: Build patched Codex app
+        env:
+          # Keep the work copy on the same drive as the repo (the swap step
+          # renames WORK -> FORGE, which cannot cross drives on Windows).
+          WORK_DIR: D:\a\work\codex-rebuild-work
+        shell: pwsh
         run: |
           $cli = if (Test-Path "cli/codex.exe") { "cli/codex.exe" } else { "${{ github.workspace }}\codexium-cli\codex-rs\target\debug\codex.exe" }
           $env:LOCAL_CODEX_EXE = Join-Path $PWD $cli
