@@ -124,12 +124,16 @@ jobs:
               echo "made Codex-$f-x64-app.zip"
             fi
           done
-          # Collect any MSIX produced by the prod 'make' step into .artifacts root
-          find . -name "*.msix*" | while read -r m; do
-            cp "$m" "./Codex-prod-x64.msix"
-            echo "copied MSIX: $(basename "$m")"
+          # Collect any MSIX / Squirrel Setup.exe produced by the prod 'make' step
+          find . \( -name "*.msix*" -o -name "Setup.exe" -o -name "*Setup-x64.exe" \) | while read -r m; do
+            case "$m" in
+              *.msix*) t="msix" ;;
+              *)       t="exe" ;;
+            esac
+            cp "$m" "./Codex-prod-x64.$t"
+            echo "collected installer: $(basename "$m") -> Codex-prod-x64.$t"
           done
-          ls -la ./*.zip ./*.msix 2>/dev/null || true
+          ls -la ./*.zip ./*.msix ./*.exe 2>/dev/null || true
 
       - name: Publish release assets
         env:
@@ -143,5 +147,5 @@ jobs:
           gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1 || gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
           cd .artifacts
           gh release upload "$TAG" --repo "$REPO" ./*.zip --clobber
-          gh release upload "$TAG" --repo "$REPO" ./*.msix --clobber || true
-          echo "uploaded zips + msix to $TAG"
+          gh release upload "$TAG" --repo "$REPO" ./*.msix ./*.exe --clobber || true
+          echo "uploaded zips + installers to $TAG"

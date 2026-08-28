@@ -6,7 +6,13 @@ module.exports = {
   },
   rebuildConfig: {},
   makers: [
-    // Windows installer (MSIX, best-effort sideload) + a portable zip.
+    // Windows installer (Squirrel Setup.exe — no signing cert needed) +
+    // best-effort MSIX + a portable zip.
+    {
+      name: '@electron-forge/maker-squirrel',
+      platforms: ['win32'],
+      config: { name: 'Codex', setupExe: 'CodexSetup-x64.exe' },
+    },
     {
       name: '@electron-forge/maker-msix',
       platforms: ['win32'],
