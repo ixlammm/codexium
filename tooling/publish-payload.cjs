@@ -38,9 +38,11 @@ function walk(dir, base, zip, skip) {
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const zip = new AdmZip();
-// app/ -> zip/app/... (base webview + package.json); skip reinstallable deps +
-// regenerable build output. NOTE: node_modules is intentionally SKIPPED here.
-walk(APP, "app", zip, new Set(["node_modules", ".vite", ".git"]));
+// app/ -> zip/app/... include the WHOLE app (webview + .vite/build + node_modules
+// + package.json) — the build patches .vite/build/main-*.js and packages the app
+// with its deps. The only thing NOT committed is the downloadable node runtime
+// (node.exe), which lives under vendor/cua-node and is fetched at build time.
+walk(APP, "app", zip, new Set([".git"]));
 // vendor/ -> zip/vendor/... keep EVERYTHING, including cua-node/bin/node_modules
 // (those are the cua runtime modules the build needs, not reinstallable).
 walk(VENDOR, "vendor", zip, new Set([".git"]));
