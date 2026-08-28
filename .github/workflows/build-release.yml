@@ -119,15 +119,15 @@ jobs:
           for f in prod dev; do
             d="Codex-$f"
             if [ -d "$d/Codex-win32-x64" ]; then
-              ( cd "$d/Codex-win32-x64" && zip -qr "../Codex-$f-x64-app.zip" . )
-              echo "made Codex-$f-x64-app.zip ($(du -h ../Codex-$f-x64-app.zip | cut -f1))"
+              # from .artifacts/Codex-<f>/Codex-win32-x64, ../../ is .artifacts
+              ( cd "$d/Codex-win32-x64" && zip -qr "../../Codex-$f-x64-app.zip" . )
+              echo "made Codex-$f-x64-app.zip"
             fi
           done
-          # Collect any MSIX produced by the prod 'make' step
-          find . -name "*.msix" -o -name "*.msixbundle" | while read -r m; do
-            base=$(basename "$m")
-            cp "$m" "../Codex-prod-x64-${base##*.}"
-            echo "copied MSIX: $base"
+          # Collect any MSIX produced by the prod 'make' step into .artifacts root
+          find . -name "*.msix*" | while read -r m; do
+            cp "$m" "./Codex-prod-x64.msix"
+            echo "copied MSIX: $(basename "$m")"
           done
           ls -la ./*.zip ./*.msix 2>/dev/null || true
 
