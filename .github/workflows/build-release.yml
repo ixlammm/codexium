@@ -6,15 +6,30 @@ on:
     branches: [full-build]
     tags: ["v*"]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 jobs:
-  build-and-release:
+  build:
+    name: build (${{ matrix.flavor }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: prod
+            cliAsset: codex.exe
+            outDir: forge-project/out
+            outName: Codex-win32-x64
+          - flavor: dev
+            cliAsset: codex-dev.exe
+            outDir: forge-project/out-dev
+            outName: Codex-win32-x64-dev
     runs-on: windows-latest
-    permissions:
-      contents: write
+    env:
+      FLAVOR: ${{ matrix.flavor }}
+      # Keep the work copy on the same drive as the repo (swap renames WORK->FORGE,
+      # which cannot cross drives on Windows).
+      WORK_DIR: D:\a\work\codex-rebuild-work-${{ matrix.flavor }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,8 +43,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install build deps (root)
-        run: |
-          npm ci --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Install forge-project deps (pnpm workspace)
         shell: pwsh
@@ -42,56 +56,65 @@ jobs:
       - name: Ensure base app payload (local or download from release)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          node tooling/fetch-payload.cjs
         shell: pwsh
+        run: node tooling/fetch-payload.cjs
 
-      # Download the latest codexium-cli release so we use the published binary
-      # (instead of building it in CI). Falls back to building from the submodule.
-      - name: Download latest codexium-cli release
+      - name: Download ${{ matrix.cliAsset }} (codexium-cli release)
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force -Path cli | Out-Null
-          $url = "https://github.com/ixlammm/codexium-cli/releases/latest/download/codex.exe"
-          try { Invoke-WebRequest -Uri $url -Headers @{ Authorization = "token $env:GH_TOKEN" } -OutFile cli/codex.exe -UseBasicParsing; Write-Host "downloaded cli/codex.exe" }
-          catch { Write-Host "codexium-cli has no codex.exe release asset — will build from submodule" }
+          $url = "https://github.com/ixlammm/codexium-cli/releases/latest/download/${{ matrix.cliAsset }}"
+          try { Invoke-WebRequest -Uri $url -Headers @{ Authorization = "token $env:GH_TOKEN" } -OutFile cli/codex.exe -UseBasicParsing; Write-Host "downloaded ${{ matrix.cliAsset }}" }
+          catch { Write-Host "no ${{ matrix.cliAsset }} release asset — will build from submodule" }
         continue-on-error: true
         id: cli_dl
 
-      - name: Build codexium-cli (if release download failed / no .exe)
-        if: steps.cli_dl.outcome != 'success' || !hashFiles('cli/codex.exe')
+      - name: Build ${{ matrix.flavor }} app
         shell: pwsh
-        run: |
-          if (-not (Test-Path codexium-cli/codex-rs/Cargo.toml)) {
-            throw "No codex.exe release asset and codexium-cli submodule not present. Publish a codex.exe asset to the ixlammm/codexium-cli releases, or init the submodule (git submodule update --init) so the fallback can build it."
-          }
-          $env:LOCAL_CODEX_EXE = "${{ github.workspace }}\codexium-cli\codex-rs\target\debug\codex.exe"
-          cargo build --bin codex -p codex-cli --manifest-path codexium-cli/codex-rs/Cargo.toml
-
-      - name: Build patched Codex app
         env:
-          # Keep the work copy on the same drive as the repo (the swap step
-          # renames WORK -> FORGE, which cannot cross drives on Windows).
-          WORK_DIR: D:\a\work\codex-rebuild-work
-        shell: pwsh
+          OUT_DIR: ${{ github.workspace }}/${{ matrix.outDir }}
+          # dev app swaps in the dev cli, prod the prod cli (both staged as cli/codex.exe)
+          LOCAL_CODEX_EXE: ${{ github.workspace }}/cli/codex.exe
         run: |
-          $cli = if (Test-Path "cli/codex.exe") { "cli/codex.exe" } else { "${{ github.workspace }}\codexium-cli\codex-rs\target\debug\codex.exe" }
-          $env:LOCAL_CODEX_EXE = Join-Path $PWD $cli
-          # Electron is resolved at runtime by the packager; ensure node avail.
+          if (-not (Test-Path cli/codex.exe)) {
+            throw "No ${{ matrix.cliAsset }} downloaded and no submodule build path. Publish ${{ matrix.cliAsset }} to ixlammm/codexium-cli releases."
+          }
           node tooling/build.cjs --rebuild
 
-      - name: Upload build artifact
+      - name: Upload ${{ matrix.flavor }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Codex-win32-x64
-          path: forge-project/out/Codex-win32-x64
+          name: Codex-${{ matrix.flavor }}
+          path: ${{ github.workspace }}/${{ matrix.outDir }}/${{ matrix.outName }}
 
-      - name: Release on tag
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+  release:
+    name: release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
         with:
-          files: |
-            forge-project/out/Codex-win32-x64/Codex.exe
-          generate_release_notes: true
+          pattern: Codex-*
+          path: .artifacts
+          merge-multiple: false
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -e
+          TAG="${GITHUB_REF##refs/tags/}"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --generate-notes
+          find .artifacts -type f -name "Codex.exe" -print
+          # Upload each flavor's whole app folder (zip it so it's downloadable as an app bundle)
+          for d in .artifacts/Codex-prod .artifacts/Codex-dev; do
+            [ -d "$d" ] || continue
+            ( cd "$d" && ( command -v zip >/dev/null && zip -qr "../${d##*/}-app.zip" . || tar -czf "../${d##*/}-app.tar.gz" . ) )
+          done
+          gh release upload "$TAG" .artifacts/*.zip .artifacts/*.tar.gz --clobber || true
