@@ -81,7 +81,6 @@ jobs:
           $env:LOCAL_CODEX_EXE = Join-Path $PWD $cli
           # Electron is resolved at runtime by the packager; ensure node avail.
           node tooling/build.cjs --rebuild
-        shell: pwsh
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
