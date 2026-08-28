@@ -69,6 +69,8 @@ packager({
   })
   .catch((err) => {
     fs.writeFileSync(path.join(os.tmpdir(), 'pkg-err.txt'), (err && err.stack) || String(err));
+    fs.writeFileSync(path.join(__dirname, 'pkg-err.txt'), (err && err.stack) || String(err));
     console.error('ERR');
+    console.error((err && err.stack) || String(err));
     process.exitCode = 1;
   });
