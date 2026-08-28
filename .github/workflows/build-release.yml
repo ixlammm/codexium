@@ -19,11 +19,9 @@ jobs:
           - flavor: prod
             cliAsset: codex.exe
             outDir: forge-project/out
-            outName: Codex-win32-x64
           - flavor: dev
             cliAsset: codex-dev.exe
             outDir: forge-project/out-dev
-            outName: Codex-win32-x64-dev
     runs-on: windows-latest
     env:
       FLAVOR: ${{ matrix.flavor }}
@@ -87,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Codex-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/${{ matrix.outDir }}/${{ matrix.outName }}
+          path: ${{ github.workspace }}/${{ matrix.outDir }}/Codex-win32-x64
 
   release:
     name: release
