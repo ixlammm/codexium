@@ -81,11 +81,21 @@ jobs:
           }
           node tooling/build.cjs --rebuild
 
+      - name: Make Windows installer (best-effort MSIX + zip)
+        if: matrix.flavor == 'prod'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          cd forge-project
+          npx electron-forge make
+          Write-Host "--- make output ---"
+          Get-ChildItem -Recurse -Path out\make -Include *.msix,*.zip -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+
       - name: Upload ${{ matrix.flavor }} artifact
         uses: actions/upload-artifact@v4
         with:
           name: Codex-${{ matrix.flavor }}
-          path: ${{ github.workspace }}/${{ matrix.outDir }}/Codex-win32-x64
+          path: ${{ github.workspace }}/${{ matrix.outDir }}
 
   release:
     name: release
@@ -101,18 +111,25 @@ jobs:
           path: .artifacts
           merge-multiple: false
 
-      - name: Package app bundles as portable zips
+      - name: Package app bundles as arch-named zips + collect MSIX
         shell: bash
         run: |
           set -e
           cd .artifacts
-          for d in Codex-prod Codex-dev; do
-            if [ -d "$d" ]; then
-              ( cd "$d" && zip -qr "../${d}-app.zip" . )
-              echo "made ${d}-app.zip ($(du -h ../${d}-app.zip | cut -f1))"
+          for f in prod dev; do
+            d="Codex-$f"
+            if [ -d "$d/Codex-win32-x64" ]; then
+              ( cd "$d/Codex-win32-x64" && zip -qr "../Codex-$f-x64-app.zip" . )
+              echo "made Codex-$f-x64-app.zip ($(du -h ../Codex-$f-x64-app.zip | cut -f1))"
             fi
           done
-          ls -la ./*.zip
+          # Collect any MSIX produced by the prod 'make' step
+          find . -name "*.msix" -o -name "*.msixbundle" | while read -r m; do
+            base=$(basename "$m")
+            cp "$m" "../Codex-prod-x64-${base##*.}"
+            echo "copied MSIX: $base"
+          done
+          ls -la ./*.zip ./*.msix 2>/dev/null || true
 
       - name: Publish release assets
         env:
@@ -124,5 +141,7 @@ jobs:
           TAG="${GITHUB_REF##refs/tags/}"
           REPO="$GITHUB_REPOSITORY"
           gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1 || gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
-          gh release upload "$TAG" --repo "$REPO" .artifacts/*.zip --clobber
-          echo "uploaded zips to $TAG"
+          cd .artifacts
+          gh release upload "$TAG" --repo "$REPO" ./*.zip --clobber
+          gh release upload "$TAG" --repo "$REPO" ./*.msix --clobber || true
+          echo "uploaded zips + msix to $TAG"
