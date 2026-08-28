@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -81,15 +81,15 @@ jobs:
           }
           node tooling/build.cjs --rebuild
 
-      - name: Make Windows installer (best-effort MSIX + zip)
+      - name: Make Windows installer (best-effort MSIX + Squirrel + zip)
         if: matrix.flavor == 'prod'
         continue-on-error: true
         shell: pwsh
         run: |
           cd forge-project
-          npx electron-forge make
+          pnpm exec electron-forge make
           Write-Host "--- make output ---"
-          Get-ChildItem -Recurse -Path out\make -Include *.msix,*.zip -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+          Get-ChildItem -Recurse -Path out\make -Include *.msix,*.msixbundle,*.exe,*.zip -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 
       - name: Upload ${{ matrix.flavor }} artifact
         uses: actions/upload-artifact@v4
