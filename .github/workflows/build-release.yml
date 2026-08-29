@@ -81,7 +81,7 @@ jobs:
           }
           node tooling/build.cjs --rebuild
 
-      - name: Make MSIX installer (electron-windows-msix, unsigned/sideload)
+      - name: Make MSIX installer (electron-windows-msix + dev-cert signed)
         if: matrix.flavor == 'prod'
         continue-on-error: true
         shell: pwsh
@@ -111,7 +111,7 @@ jobs:
           path: .artifacts
           merge-multiple: false
 
-      - name: Package app bundles as arch-named zips + collect MSIX
+      - name: Package app bundles as arch-named zips + collect MSIX + dev cert
         shell: bash
         run: |
           set -e
@@ -124,16 +124,16 @@ jobs:
               echo "made Codex-$f-x64-app.zip"
             fi
           done
-          # Collect any MSIX / Squirrel Setup.exe produced by the prod 'make' step
-          find . \( -name "*.msix*" -o -name "Setup.exe" -o -name "*Setup-x64.exe" \) | while read -r m; do
-            case "$m" in
-              *.msix*) t="msix" ;;
-              *)       t="exe" ;;
-            esac
-            cp "$m" "./Codex-prod-x64.$t"
-            echo "collected installer: $(basename "$m") -> Codex-prod-x64.$t"
+          # Collect the dev-cert signed MSIX (+ the .cer to trust) produced by the prod step
+          find . -name "*.msix*" | while read -r m; do
+            cp "$m" "./Codex-prod-x64.msix"
+            echo "collected installers: $(basename "$m") -> Codex-prod-x64.msix"
           done
-          ls -la ./*.zip ./*.msix ./*.exe 2>/dev/null || true
+          find . -iname "dev_cert.cer" | while read -r c; do
+            cp "$c" "./Codex-prod-x64.cer"
+            echo "collected cert: $(basename "$c") -> Codex-prod-x64.cer"
+          done
+          ls -la ./*.zip ./*.msix ./*.cer 2>/dev/null || true
 
       - name: Publish release assets
         env:
@@ -147,5 +147,5 @@ jobs:
           gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1 || gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
           cd .artifacts
           gh release upload "$TAG" --repo "$REPO" ./*.zip --clobber
-          gh release upload "$TAG" --repo "$REPO" ./*.msix ./*.exe --clobber || true
+          gh release upload "$TAG" --repo "$REPO" ./*.msix ./*.cer --clobber || true
           echo "uploaded zips + installers to $TAG"
