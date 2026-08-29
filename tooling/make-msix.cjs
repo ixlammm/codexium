@@ -1,5 +1,5 @@
 "use strict";
-// Build an unsigned (sideload) MSIX installer directly from the packaged Codex
+// Build a dev-cert-signed MSIX installer directly from the packaged Codex
 // app using electron-windows-msix. This bypasses electron-forge (whose `pnpm
 // install` fails because forge-project depends on a private monorepo's
 // `workspace:*` packages) while still producing a real installable .msix.
@@ -15,10 +15,9 @@ const os = require("os");
 const { spawnSync } = require("child_process");
 
 const REPO = path.join(__dirname, "..");
-const APP = process.env.MSIX_APP_DIR || path.join(REPO, "forge-project", "out", "Codex-win32-x64");
-const OUT = process.env.MSIX_OUT_DIR || path.join(REPO, "forge-project", "out", "installer");
+const APP = path.resolve(process.env.MSIX_APP_DIR || path.join(REPO, "forge-project", "out", "Codex-win32-x64"));
+const OUT = path.resolve(process.env.MSIX_OUT_DIR || path.join(REPO, "forge-project", "out", "installer"));
 const VER = process.env.APP_VERSION || require(path.join(REPO, "forge-project", "package.json")).version;
-const CERT_PASSWORD = "CodexiumDev2026!";
 
 if (!fs.existsSync(path.join(APP, "Codex.exe"))) {
   console.error("[make-msix] packaged app not found at", APP, "— try the build step first");
@@ -52,23 +51,28 @@ function run(exe, args, opts) {
   return r.stdout || "";
 }
 
-// Create a self-signed CodeSigning dev cert + export .cer/.pfx (matches the
-// subject the manifest uses, CN=OpenAI). The user trusts the .cer to install.
+// Create a self-signed CodeSigning dev cert in the current user's `My` store
+// (subject CN=OpenAI, matching the manifest publisher) and export its public
+// certificate (.cer) so the user can trust it and install. Signing is done by
+// certificate name (/n), so we never need to export the private key (PKCS#12
+// export is fragile on CI runners).
 function createDevCert() {
   const subject = "CN=OpenAI";
-  const pfx = path.join(OUT, "dev_cert.pfx");
-  const cer = path.join(OUT, "dev_cert.cer");
+  const cer = path.resolve(OUT, "dev_cert.cer");
   const script = `
-$pwd = ConvertTo-SecureString -String '${CERT_PASSWORD}' -Force -AsPlainText
+$ErrorActionPreference = 'Stop'
 $cert = New-SelfSignedCertificate -DnsName 'electron.windows.msix.dev' -Subject '${subject}' -KeyExportPolicy Exportable -KeyLength 2048 -KeyUsage DigitalSignature -Type CodeSigning -KeySpec Signature -NotAfter (Get-Date).AddYears(99) -CertStoreLocation 'cert:\\CurrentUser\\My'
 Export-Certificate -Cert $cert -FilePath '${cer}' | Out-Null
-Export-PfxCertificate -Cert $cert -FilePath '${pfx}' -Password $pwd | Out-Null
+Write-Output ("DEVCERT_THUMBPRINT=" + $cert.Thumbprint)
 `;
-  const ps1 = path.join(os.tmpdir(), "codexium-dev-cert.ps1");
+  const ps1 = path.join(os.tmpdir(), `codexium-dev-cert-${Date.now()}.ps1`);
   fs.writeFileSync(ps1, script);
-  run("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& '${ps1}'`]);
+  const out = run("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& '${ps1}'`]);
   fs.unlinkSync(ps1);
-  return { pfx, cer };
+  const m = /DEVCERT_THUMBPRINT=([0-9A-F]+)/i.exec(out);
+  const thumb = m ? m[1] : undefined;
+  if (!thumb || !fs.existsSync(cer)) throw new Error("dev cert not created (no thumbprint / .cer written)");
+  return { cer, thumb };
 }
 
 (async () => {
@@ -99,13 +103,13 @@ Export-PfxCertificate -Cert $cert -FilePath '${pfx}' -Password $pwd | Out-Null
   const msix = path.join(OUT, fs.readdirSync(OUT).find((f) => /\.msix$/i.test(f)) || "");
   if (!msix) { console.error("[make-msix] no .msix produced"); process.exit(1); }
 
-  // Self-sign offline with a dev cert; no timestamp server (which is what broke
-  // electron-windows-msix's built-in signing). User installs dev_cert.cer then
-  // Add-AppxPackage (no -AllowUnsigned) — this avoids the "unsigned namespace" error.
+  // Self-sign offline with the dev cert (in-store, by name) — no PFX / timestamp
+  // server (both fragile on CI). User installs dev_cert.cer then Add-AppxPackage
+  // (no -AllowUnsigned) — avoids the "unsigned namespace" deployment error.
   if (signtool) {
-    const { pfx, cer } = createDevCert();
-    console.log("[make-msix] signing", msix, "with dev cert...");
-    run(signtool, ["sign", "/f", pfx, "/p", CERT_PASSWORD, "/fd", "sha256", "/d", "Codex", msix]);
+    const { cer, thumb } = createDevCert();
+    console.log("[make-msix] signing", msix, "with dev cert (thumb", thumb, ")...");
+    run(signtool, ["sign", "/s", "My", "/sha1", thumb, "/fd", "sha256", "/d", "Codex", msix]);
     console.log("[make-msix] signed. Cert to trust:", cer);
   } else {
     console.warn("[make-msix] signtool missing — leaving package UNSIGNED (installer will need -AllowUnsigned + Developer Mode)");
