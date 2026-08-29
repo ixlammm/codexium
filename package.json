@@ -19,6 +19,7 @@
     "@electron/asar": "^3.4.1",
     "@electron/packager": "^18.4.4",
     "@lobehub/icons-static-svg": "^1.94.0",
+    "electron-windows-msix": "^2.0.4",
     "esbuild": "^0.28.2",
     "playwright-core": "^1.62.1"
   },

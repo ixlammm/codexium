@@ -57,6 +57,7 @@ tooling/*
 !tooling/build-all.cjs
 !tooling/publish-payload.cjs
 !tooling/fetch-payload.cjs
+!tooling/make-msix.cjs
 !tooling/codexium-*.jsx
 !tooling/providers-registry.json
 !tooling/injected-custom-models.js

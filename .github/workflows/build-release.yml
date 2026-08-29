@@ -81,15 +81,15 @@ jobs:
           }
           node tooling/build.cjs --rebuild
 
-      - name: Make Windows installer (best-effort MSIX + Squirrel + zip)
+      - name: Make MSIX installer (electron-windows-msix, unsigned/sideload)
         if: matrix.flavor == 'prod'
         continue-on-error: true
         shell: pwsh
+        env:
+          MSIX_APP_DIR: ${{ github.workspace }}/${{ matrix.outDir }}/Codex-win32-x64
+          MSIX_OUT_DIR: ${{ github.workspace }}/${{ matrix.outDir }}/installer
         run: |
-          cd forge-project
-          pnpm exec electron-forge make
-          Write-Host "--- make output ---"
-          Get-ChildItem -Recurse -Path out\make -Include *.msix,*.msixbundle,*.exe,*.zip -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+          node tooling/make-msix.cjs
 
       - name: Upload ${{ matrix.flavor }} artifact
         uses: actions/upload-artifact@v4
