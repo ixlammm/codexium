@@ -32,7 +32,7 @@ packaging it into installable Windows artifacts.
 | **Custom providers & models** | Add and configure your own providers/models in a dedicated settings UI. |
 | **Live provider/model switching** | Swap providers and models without relaunching the app. |
 | **No forced OpenAI login** | Sign in / auth changes that don't force you into an OpenAI account. |
-| **Telemetry removed** | Phone-home calls are blocked. |
+| **Telemetry removed** | Blocks the built-in analytics, event logging, and crash/error reporting (wham, `log_event`, SDK exceptions, Sentry) — nothing sensitive leaves your machine. |
 
 ---
 
