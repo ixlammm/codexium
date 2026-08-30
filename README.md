@@ -26,13 +26,17 @@ packaging it into installable Windows artifacts.
 
 ## Highlights
 
+Built with **privacy by default** — the built-in analytics, event logging, and
+crash/error reporting (wham, `log_event`, SDK exceptions, Sentry) are blocked so
+nothing sensitive leaves your machine.
+
 | What | Why |
 | --- | --- |
 | **Model-grouping composer picker** | Group, filter, and switch models directly in the composer — no hunting through the menu. |
 | **Custom providers & models** | Add and configure your own providers/models in a dedicated settings UI. |
 | **Live provider/model switching** | Swap providers and models without relaunching the app. |
 | **No forced OpenAI login** | Sign in / auth changes that don't force you into an OpenAI account. |
-| **Privacy by default** | Blocks the built-in analytics, event logging, and crash/error reporting (wham, `log_event`, SDK exceptions, Sentry) so nothing sensitive leaves your machine. |
+| **Telemetry removed** | The app's analytics and error reporters are blocked before they're sent. |
 
 ---
 
