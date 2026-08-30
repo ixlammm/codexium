@@ -147,5 +147,7 @@ jobs:
           gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1 || gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
           cd .artifacts
           gh release upload "$TAG" --repo "$REPO" ./*.zip --clobber
-          gh release upload "$TAG" --repo "$REPO" ./*.msix ./*.cer --clobber || true
+          # upload MSIX + dev cert independently so an empty glob cannot abort the whole step
+          if ls ./*.msix >/dev/null 2>&1; then gh release upload "$TAG" --repo "$REPO" ./*.msix --clobber || true; else echo "no .msix to upload"; fi
+          if ls ./*.cer  >/dev/null 2>&1; then gh release upload "$TAG" --repo "$REPO" ./*.cer  --clobber || true; else echo "no .cer to upload"; fi
           echo "uploaded zips + installers to $TAG"

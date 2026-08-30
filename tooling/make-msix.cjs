@@ -67,7 +67,9 @@ Write-Output ("DEVCERT_THUMBPRINT=" + $cert.Thumbprint)
 `;
   const ps1 = path.join(os.tmpdir(), `codexium-dev-cert-${Date.now()}.ps1`);
   fs.writeFileSync(ps1, script);
-  const out = run("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& '${ps1}'`]);
+  // Use PowerShell 7 (pwsh): Windows PowerShell 5.1 on CI runners sometimes
+  // throws "DriveNotFound" for the cert:\ drive (New-SelfSignedCertificate).
+  const out = run("pwsh", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& '${ps1}'`]);
   fs.unlinkSync(ps1);
   const m = /DEVCERT_THUMBPRINT=([0-9A-F]+)/i.exec(out);
   const thumb = m ? m[1] : undefined;
