@@ -3,7 +3,6 @@ name: build-app-release
 on:
   workflow_dispatch:
   push:
-    branches: [full-build]
     tags: ["v*"]
 
 permissions:
