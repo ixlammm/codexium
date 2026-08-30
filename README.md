@@ -48,6 +48,34 @@ node rebuild.cjs --rebuild  # full cycle: swap golden, package, extract unpacked
 Env overrides: `BASE_DIR`, `ASAR_SRC`, `NATIVE_RESOURCES`, `OUT_DIR`,
 `FORGE_DIR`, `WORK_DIR`.
 
+## Install (release)
+
+Installers are published to the GitHub release
+(`gh release view v26.803.41515-patched`). Two kinds of asset exist:
+
+### Signed MSIX (recommended, installer)
+
+Download `Codex-prod-x64.msix` **and** `Codex-prod-x64.cer` (the dev certificate
+used to sign it). The package is signed with a self-signed CodeSigning cert
+(subject `CN=OpenAI`), so you must trust that cert first — do **not** use
+`-AllowUnsigned` (that path needs the "unsigned namespace" and fails).
+
+```powershell
+# 1) Trust the dev cert
+Import-Certificate -FilePath "Codex-prod-x64.cer" -CertStoreLocation Cert:\CurrentUser\TrustedPeople
+
+# 2) Install the signed MSIX (no -AllowUnsigned)
+Add-AppxPackage -Path "Codex-prod-x64.msix"
+```
+
+If Windows still refuses, enable **Settings → For developers → Developer Mode**
+(for sideloaded packages), then re-run step 2.
+
+### Portable zips (no installer)
+
+`Codex-prod-x64-app.zip` (patched CLI) / `Codex-dev-x64-app.zip` (dev CLI):
+extract anywhere and run `Codex.exe`.
+
 ## Fast iteration loop (after a build)
 
 1. Edit `forge-project/out/Codex-win32-x64/resources/app/webview/index.html`
