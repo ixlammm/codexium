@@ -52,12 +52,15 @@ that signed it). The package is signed with a self-signed CodeSigning cert
 (subject `CN=OpenAI`), so trust that cert first — do **not** use `-AllowUnsigned`
 (that path needs the unsigned namespace and fails).
 
+MSIX validates the signature against a **Root** store, so the cert must be added to
+`LocalMachine\Root` (run in an **elevated** PowerShell):
+
 ```powershell
-# 1) Trust the dev cert
-Import-Certificate -FilePath "Codex-prod-x64.cer" -CertStoreLocation Cert:\CurrentUser\TrustedPeople
+# 1) Trust the dev cert as a trusted root (admin)
+Import-Certificate -FilePath ".\Codex-prod-x64.cer" -CertStoreLocation Cert:\LocalMachine\Root
 
 # 2) Install the signed MSIX (no -AllowUnsigned)
-Add-AppxPackage -Path "Codex-prod-x64.msix"
+Add-AppxPackage -Path ".\Codex-prod-x64.msix"
 ```
 
 Still refused? Enable **Settings → For developers → Developer Mode**, then re-run step 2.
