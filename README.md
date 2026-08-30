@@ -1,8 +1,11 @@
-# Codex rebuild kit
+# Codexium
 
-Reproduces the patched Codex desktop app (model-grouping in the composer
-picker, custom-model selection fix, patch backups cleaned) from a pristine
-Codex install.
+A rebuild kit + GitHub Actions CI that produces **Codexium**, a customized
+build of the Codex desktop app. It layers additional features onto a pristine
+Codex install — a model-grouping composer picker, a providers/models settings
+UI with custom providers and models, live provider/model switching, and
+sign-in/auth changes that don't force an OpenAI login — then packages and
+publishes installable Windows artifacts (signed MSIX + portable zips).
 
 ## Layout
 
